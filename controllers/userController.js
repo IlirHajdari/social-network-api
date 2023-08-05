@@ -1,5 +1,5 @@
 const User = require("../models/User");
-const Post = require("../models/Post");
+const Thought = require("../models/Thought");
 
 module.exports = {
   async getUsers(req, res) {
@@ -8,25 +8,24 @@ module.exports = {
 
       res.json(users);
     } catch (err) {
-      console.log("Looks like something went wrong getting the users...", err);
+      console.log("Something went wrong getting the users", err);
       return res.status(500).json(err);
     }
   },
 
   async getSingleUser(req, res) {
     try {
-      const user = await User.findOne({ _id: req.params.userId }).select("__v");
+      const user = await User.findOne({ _id: req.params.userId }).select(
+        "-__v"
+      );
 
       if (!user) {
-        return res.status(404).json({ message: "No user found with that ID" });
+        return res.status(404).json({ message: "No user with that ID" });
       }
 
       res.json(user);
     } catch (err) {
-      console.log(
-        "Looks like something went wrong getting that specific user...",
-        err
-      );
+      console.log("Something went wrong getting that user", err);
       return res.status(500).json(err);
     }
   },
@@ -37,96 +36,87 @@ module.exports = {
 
       res.json(newUser);
     } catch (err) {
-      console.log(
-        "Looks like something went wrong creating a new user...",
-        err
-      );
-      return res.status(500).json(err);
+      console.log("Something went wrong creating a new user", err);
+      res.status(500).json(err);
     }
   },
 
   async updateUser(req, res) {
     try {
-      const updatedUser = await User.findAndUpdate(
+      const updatedUser = await User.findOneAndUpdate(
         { _id: req.params.userId },
         { $set: req.body },
         { new: true }
       );
 
       if (!updatedUser) {
-        return res.status(404).json({ message: "User not found " });
+        return res.status(404).json({ message: "User not found" });
       }
 
       res.json(updatedUser);
     } catch (err) {
-      console.log("Looks like something went wrong updated that user...", err);
+      console.log("Something went wrong when updating that user", err);
       res.status(500).json(err);
     }
   },
 
   async deleteUser(req, res) {
     try {
-      const deletedUser = await User.findAndDelete({
+      const deletedUser = await User.findOneAndDelete({
         _id: req.params.userId,
       });
 
       if (!deletedUser) {
-        return res.status(404).json({ message: "No user with that ID found" });
+        return res.status(404).json({ message: "No user found with that id" });
       }
 
-      await Post.deleteMany({ username: deletedUser.username });
+      // * Remove associated thoughts for the deleted user
+      await Thought.deleteMany({ username: deletedUser.username });
 
       res.json(deletedUser);
       console.log(`Deleted: ${deletedUser}`);
     } catch (err) {
-      console.log(
-        "Looks like something went wrong when trying to delete that user...",
-        err
-      );
+      console.log("Something went wrong when deleting that user", err);
       res.status(500).json(err);
     }
   },
 
+  // **** Friend Controllers **** //
+
   async addFriend(req, res) {
     try {
-      const user = await User.findAndUpdate(
+      const user = await User.findOneAndUpdate(
         { _id: req.params.userId },
         { $addToSet: { friends: req.body } },
         { runValidators: true, new: true }
       );
 
       if (!user) {
-        return res.status(404).json({ message: "No user with that ID found" });
+        return res.status(404).json({ message: "No user found with that id" });
       }
 
       res.json(user);
     } catch (err) {
-      console.log(
-        "Looks like something went wrong when trying to add that friend",
-        err
-      );
+      console.log("Something went wrong when adding that friend", err);
       res.status(500).json(err);
     }
   },
 
   async removeFriend(req, res) {
     try {
-      const user = await User.findAndUpdate(
+      const user = await User.findOneAndUpdate(
         { _id: req.params.userId },
         { $pull: { friends: req.params.friendId } },
         { runValidators: true, new: true }
       );
 
       if (!user) {
-        return res.status(404).json({ message: "No user with that ID found" });
+        return res.status(404).json({ message: "No user found with that id" });
       }
 
       res.json(user);
     } catch (err) {
-      console.log(
-        "Looks like something went wrong whey trying to remove that friend",
-        err
-      );
+      console.log("Something went wrong when removing that friend", err);
       res.status(500).json(err);
     }
   },
