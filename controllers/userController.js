@@ -84,9 +84,9 @@ module.exports = {
     try {
       const user = await User.findOneAndUpdate(
         { _id: req.params.userId },
-        { $addToSet: { friends: req.body } },
+        { $addToSet: { friends: req.body._id } },
         { runValidators: true, new: true }
-      );
+      ).populate("friends");
 
       if (!user) {
         return res.status(404).json({ message: "No user found with that id" });
