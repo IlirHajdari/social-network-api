@@ -81,8 +81,6 @@ module.exports = {
     }
   },
 
-  // **** Friend Controllers **** //
-
   async addFriend(req, res) {
     try {
       const user = await User.findOneAndUpdate(
