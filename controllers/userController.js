@@ -70,7 +70,6 @@ module.exports = {
         return res.status(404).json({ message: "No user found with that id" });
       }
 
-      // * Remove associated thoughts for the deleted user
       await Thought.deleteMany({ username: deletedUser.username });
 
       res.json(deletedUser);
